@@ -73,22 +73,20 @@ userController.signup = async (req, res, next) => {
 
 // function to authenicate user and start session
 userController.login = async (req, res, next) => {
-  let { username, password, google_id, oauth_provider, first_name,last_name } = req.body;
+  let { username, password, google_id, oauth_provider, first_name, last_name } = req.body;
 
   try {
     // console.log("REQBODY IN USERCONTROLLER LOGIN", req.body)
-    // const loginString =
-    //   'SELECT id, username, first_name, password FROM users WHERE username = $1';
-    const loginString =  'SELECT id, username, first_name, password FROM users WHERE username = $1 OR google_id = $2';
-      // 'SELECT id, username WHERE username = $1 OR google_id=$2';
-
+    const loginString =  'SELECT id, username, first_name, password, google_id FROM users WHERE username = $1 OR google_id = $2';
     // store as lowercase for ease
     const userResult = await db.query(loginString, [username.toLowerCase(), google_id]);
     const user = userResult.rows[0]
     
     console.log("USERCONTROLLERLOGIN- user", user)
 
-    //if logging in with Oauth - not yet a registered user and need to add to database
+   
+   
+    //if logging in with Oauth for first time - not yet a registered user and need to add to database
     if (!user) {
       const newUser = await db.query(
         'INSERT INTO users (username, google_id, oauth_provider, first_name, last_name) VALUES ($1, $2, $3, $4, $5) RETURNING *',
@@ -108,13 +106,16 @@ userController.login = async (req, res, next) => {
       return next()
     }
 
+    //If you already logged in using OAuth previously - your information is in the database and and proceed to login
+    //The request body will not contain a password and only contain a google ID
+    if (!user.password && google_id === user.google_id) {
+      res.locals.login = true;
+      res.locals.account =[{...user}]
+      return next()
+    }
 
-    // check for no user found and if no user then login failure and en
-    // if (user.rowCount === 0) {
-    //   res.locals.login = false;
-    //   return res.status(401).json({ message: 'Invalid username or password' });
-    // }
 
+    //logging into platform without Oauth
     // compare password to hashed password in db
     if (password && user.password === password) {
       res.locals.login = true;

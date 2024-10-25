@@ -18,9 +18,11 @@ cookieController.setCookie = (req, res, next) => {
 
   // set 'ssid' as our primary session identifier
   console.log('Setting Cookie for session ID:', res.locals.session.id);
-  res.cookie('ssid', res.locals.session.id, {
+  
+  res.cookie('hoame_ssid', res.locals.session.id, {
     httpOnly: true,
-    secure: false, // set secure to true if using HTTPS
+    secure: false,
+    // set secure to true if using HTTPS
     maxAge: 60 * 60 * 1000, // 1 hour
   });
 
@@ -37,7 +39,7 @@ cookieController.setSSIDCookie = (req, res, next) => {
     console.log('Setting SSID cookie for userId:', userId);
 
     // SSID cookie
-    res.cookie('ssid', userId, {
+    res.cookie('hoame_ssid', userId, {
       httpOnly: true,
       secure: true, // Use only over HTTPS
       maxAge: 60 * 60 * 1000, // 1 hour
