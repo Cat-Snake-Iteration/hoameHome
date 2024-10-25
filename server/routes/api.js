@@ -94,15 +94,21 @@ router.delete(
  * documentController routes
  * upload endpoint for calling multer upload.single('file') <-- argument must match name attribute set in HTML form that submits the file <--, followed by documentControllerUpload middleware to upload files to Db & then send a response back.
  */
-router.post(
-  '/upload',
-  upload.single('file'),
-  documentController.postUpload,
-  (req, res) => {
-    console.log('from api.js - File uploaded and saved to database.');
-    res.status(201).json(res.locals.upload);
+// route to serve file and check for ti
+router.get('/file/:filename', documentController.serveFile, (req, res) => {
+  const { servedFile } = res.locals;
+
+  // Check if the file exists in res.locals
+  if (!servedFile) {
+    return res.status(404).json({ err: 'File not found' });
   }
-);
+
+  // Set the headers and send the file data
+  res.setHeader('Content-Type', servedFile.content_type);
+  res.setHeader('Content-Disposition', `inline; filename="${servedFile.filename}"`);
+  
+  return res.status(200).json(servedFile.file_data);
+});
 
 // Route to get documents from DB
 router.get('/getDocs', documentController.getAllDocs, (req, res) => {
