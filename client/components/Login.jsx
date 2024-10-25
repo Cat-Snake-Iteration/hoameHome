@@ -104,12 +104,13 @@ const Login = ({ onLogin }) => {
         }),
       });
       const data = await response.json();
-      // console.log('DATAFIRSTNAME', data.firstName);
+      console.log('DATAFIRSTNAME', data);
 
       // upon successful login, update state
       if (response.ok) {
         onLogin({isLoggedIn: true});
         // onLogin(true); // Update the login state to true
+        // console.log("I AM HERE WHERE I AM WANTING TO BE!!!!!!!")
         navigate('/dashboard', {state: {prop: data.firstName} }); // Redirect to dashboard
       } else {
         console.error('Login failed:', data);

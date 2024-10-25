@@ -117,10 +117,10 @@ userController.login = async (req, res, next) => {
 
     // compare password to hashed password in db
     if (password && user.password === password) {
-      console.log('login successful', user);
       res.locals.login = true;
-      res.locals.account = [{...user}]
+      res.locals.account =[{...user}]
       console.log('Login successful', user)
+      console.log("RESLOCALSACCOUNT", res.locals.account[0].first_name)
     } else {
       res.locals.login = false;
       console.log('Login not successful, try again')
