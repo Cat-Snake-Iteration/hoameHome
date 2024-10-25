@@ -8,14 +8,14 @@ import { useGoogleLogin } from '@react-oauth/google';
 */
 
 const Login = ({ onLogin }) => {
+    // hook to navigate
+  const navigate = useNavigate();
   // state vars
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [user, setUser] = useState(null);
-  // hook to navigate
-  const navigate = useNavigate();
   // potential error handler
-  //const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   //HANDLE LOGIN WITH OAUTH
   const login = useGoogleLogin({
@@ -61,14 +61,23 @@ const Login = ({ onLogin }) => {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ userInfo }),
+          // body: JSON.stringify({ userInfo }),
+          body: JSON.stringify({username: userInfo.email, // Use email as username
+            google_id: userInfo.id, // Use Google ID for tracking
+            oauth_provider: 'google',
+            first_name: userInfo.given_name,
+            last_name: userInfo.family_name
+          })
         });
+
         console.log('response', response);
         if (response.ok) {
           const data = await response.json();
           console.log('Logged in user data:', data);
           // This will log the updated user
-          setLoggedinUser(data.loggedInUser);
+          // setIsLoggedIn(data.loggedInUser)
+          setIsLoggedIn(data.login);
+          navigate('/dashboard', {state: {prop: userInfo.given_name} }); 
         }
       } catch (error) {
         console.error('Error fetching data:', error);

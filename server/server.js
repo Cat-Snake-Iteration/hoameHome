@@ -4,6 +4,7 @@ const app = express();
 const apiRouter = require('./routes/api');
 const cookieParser = require('cookie-parser') //Using later on make sure to install
 const cors = require('cors');
+const db = require('./models/hoameModels');
 const session = require('express-session'); // Import express-session
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
@@ -54,9 +55,25 @@ passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID || '70669525785-chgik7e7rdngn09p3b1mc1373bb80p9q.apps.googleusercontent.com',
     clientSecret: process.env.GOOGLE_CLIENT_SECRET || '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',
     callbackURL: 'http://localhost:3000/auth/google/callback'
-}, (accessToken, refreshToken, profile, done) => {
-    // Handle user data, e.g., find or create user in the database
-    return done(null, profile);
+}, async (accessToken, refreshToken, profile, done) => {  
+  try {
+    console.log("PROFILE GOOGLEID??", profile.google_id)
+    const findUserString ='SELECT * FROM users WHERE google_id=$1'
+    const findUser = await db.query(findUserString, [profile.google_id])
+      // Handle user data, e.g., find or create user in the database
+      const userFound = findUser.rows
+      res.locals.user = userFound
+      next()
+      return done(null, profile);
+  } catch (err) {
+    console.log(err);
+    next({
+      log: 'getAllUsers',
+      message: {
+        err: 'userController.getAllUsers ERROR: Check server logs for details',
+      },
+    });
+  }
 }));
 
 // Serialize and deserialize user for session management
