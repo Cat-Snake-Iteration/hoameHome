@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useGoogleLogin } from '@react-oauth/google';
 
 /*
   Handles user authenticaion with input for username and password
@@ -10,10 +11,74 @@ const Login = ({ onLogin }) => {
   // state vars
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [user, setUser] = useState(null);
   // hook to navigate
   const navigate = useNavigate();
   // potential error handler
   //const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  //HANDLE LOGIN WITH OAUTH
+  const login = useGoogleLogin({
+    onSuccess: (response) => {
+      console.log('Login successful!', response);
+      setUser(response.access_token); // assuming response contains profile info
+      console.log('google user', user);
+    },
+    onError: () => {
+      console.log('Login failed');
+    },
+  });
+
+  useEffect(() => {
+    const fetchUserInfo = async (user) => {
+      try {
+        const response = await fetch(
+          'https://www.googleapis.com/oauth2/v2/userinfo',
+          {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${user}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch user info');
+        }
+
+        const userInfo = await response.json();
+        console.log('User Info:', userInfo);
+        fetchData(userInfo);
+      } catch (error) {
+        console.error('Error fetching user info:', error);
+      }
+    };
+    const fetchData = async (userInfo) => {
+      try {
+        const response = await fetch('http://localhost:3000/api/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ userInfo }),
+        });
+        console.log('response', response);
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Logged in user data:', data);
+          // This will log the updated user
+          setLoggedinUser(data.loggedInUser);
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+    if (user) {
+      fetchUserInfo(user);
+    }
+  }, [user]); // Runs whenever `user` is updated
+  //ABOVE HANDLE LOGIN WITH OAUTH
 
   // function to handle login
   const handleLogin = async () => {
@@ -88,7 +153,7 @@ const Login = ({ onLogin }) => {
 
           {/* potential button for google login */}
           <button
-            onClick={() => alert('Google login clicked')}
+            onClick={() => login()}
             className='loginButton1'
           >
             {' '}
