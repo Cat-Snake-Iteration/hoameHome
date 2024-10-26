@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useGoogleLogin } from '@react-oauth/google';
 
 /*
   Handles user authenticaion with input for username and password
@@ -7,13 +8,88 @@ import { useNavigate } from 'react-router-dom';
 */
 
 const Login = ({ onLogin }) => {
+    // hook to navigate
+  const navigate = useNavigate();
   // state vars
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  // hook to navigate
-  const navigate = useNavigate();
+  const [user, setUser] = useState(null);
   // potential error handler
-  //const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  //HANDLE LOGIN WITH OAUTH
+  const login = useGoogleLogin({
+    onSuccess: (response) => {
+      console.log('Login successful!', response);
+      setUser(response.access_token); // assuming response contains profile info
+      console.log('google user', user);
+    },
+    onError: () => {
+      console.log('Login failed');
+    },
+  });
+
+  useEffect(() => {
+    const fetchUserInfo = async (user) => {
+      try {
+        const response = await fetch(
+          'https://www.googleapis.com/oauth2/v2/userinfo',
+          {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${user}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch user info');
+        }
+
+        const userInfo = await response.json();
+        console.log('User Info:', userInfo);
+        fetchData(userInfo);
+      } catch (error) {
+        console.error('Error fetching user info:', error);
+      }
+    };
+    const fetchData = async (userInfo) => {
+      try {
+        const response = await fetch('http://localhost:3000/api/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include', 
+          // body: JSON.stringify({ userInfo }),
+          body: JSON.stringify({username: userInfo.email, // Use email as username
+            google_id: userInfo.id, // Use Google ID for tracking
+            oauth_provider: 'google',
+            first_name: userInfo.given_name,
+            last_name: userInfo.family_name
+          })
+        });
+
+        console.log('response', response.headers);
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Logged in user data:', data);
+          // This will log the updated user
+          // setIsLoggedIn(data.loggedInUser)
+          setIsLoggedIn(data.login);
+          onLogin({isLoggedIn: true});
+          navigate('/dashboard', {state: {prop: userInfo.given_name} }); 
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+    if (user) {
+      fetchUserInfo(user);
+    }
+  }, [user]); // Runs whenever `user` is updated
+  //ABOVE HANDLE LOGIN WITH OAUTH
 
   // function to handle login
   const handleLogin = async () => {
@@ -30,12 +106,13 @@ const Login = ({ onLogin }) => {
         }),
       });
       const data = await response.json();
-      // console.log('DATAFIRSTNAME', data.firstName);
+      console.log('DATAFIRSTNAME', data);
 
       // upon successful login, update state
       if (response.ok) {
         onLogin({isLoggedIn: true});
         // onLogin(true); // Update the login state to true
+        // console.log("I AM HERE WHERE I AM WANTING TO BE!!!!!!!")
         navigate('/dashboard', {state: {prop: data.firstName} }); // Redirect to dashboard
       } else {
         console.error('Login failed:', data);
@@ -88,7 +165,7 @@ const Login = ({ onLogin }) => {
 
           {/* potential button for google login */}
           <button
-            onClick={() => alert('Google login clicked')}
+            onClick={() => login()}
             className='loginButton1'
           >
             {' '}

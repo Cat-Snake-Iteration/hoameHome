@@ -37,7 +37,7 @@ router.post(
     // console.log('RESLOCALSFIRSTNAME', res.locals.firstName); //- currently undefined
     res
       .status(200)
-      .json({ login: res.locals.login, firstName: res.locals.firstName });
+      .json({ login: res.locals.login, firstName: res.locals.account[0].first_name});
   }
 );
 

@@ -63,18 +63,18 @@ sessionController.isAuthenticated = async (req, res, next) => {
 
   try {
     // get session id from cookies and check for no ssid in cookies
-    const { ssid } = req.cookies;
-    console.log('SSID from cookies:', ssid); // Log the cookie to verify it's being sent
+    const { hoame_ssid } = req.cookies;
+    console.log('SSID from cookies:', hoame_ssid); // Log the cookie to verify it's being sent
 
     // check for ssid
-    if (!ssid)
+    if (!hoame_ssid)
       return res.status(401).json({
         message: 'BEGONE, YOUR ACCESS HAS BEEN DENIED. NO ACTIVE SESSION FOUND',
       });
 
     // check session exist and if not expired
     const query = 'SELECT * FROM sessions WHERE id = $1';
-    const result = await db.query(query, [ssid]); // do query
+    const result = await db.query(query, [hoame_ssid]); // do query
     if (result.rowCount === 0)
       return res.status(401).json({
         message: 'BEGONE, YOUR ACCESS HAS BEEN DENIED. NO SESSION FOUND',
@@ -104,14 +104,15 @@ sessionController.isAuthenticated = async (req, res, next) => {
 sessionController.endSession = async (req, res, next) => {
   console.log('ending session...');
   try {
-    const { ssid } = req.cookies; // ssid is stored in cookies
+    const { hoame_ssid } = req.cookies; // ssid is stored in cookies
 
     // query to delete session based on user_id
     const deleteSession = 'DELETE FROM sessions WHERE id = $1';
-    await db.query(deleteSession, [ssid]);
+    await db.query(deleteSession, [hoame_ssid]);
 
     //clear cookie
-    res.clearCookie('ssid');
+    res.clearCookie('hoame_ssid', { sameSite: 'None', secure: false });
+    res.clearCookie('SSID', { domain: '.google.com', path: '/' });
     console.log('session deleted and cookie cleared');
     return next();
   } catch (error) {

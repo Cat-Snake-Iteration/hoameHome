@@ -59,7 +59,5 @@ CREATE TABLE [sessions] (
 
 ALTER TABLE [roles] ADD CONSTRAINT [roles_fk6] FOREIGN KEY ([files_id]) REFERENCES [files]([id]);
 ALTER TABLE [users_roles] ADD CONSTRAINT [users_roles_fk0] FOREIGN KEY ([users_id]) REFERENCES [users]([id]);
-
 ALTER TABLE [users_roles] ADD CONSTRAINT [users_roles_fk1] FOREIGN KEY ([roles_id]) REFERENCES [roles]([id]);
-
 ALTER TABLE [sessions] ADD CONSTRAINT [sessions_fk1] FOREIGN KEY ([user_id]) REFERENCES [users]([id]);

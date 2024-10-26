@@ -4,14 +4,17 @@ const app = express();
 const apiRouter = require('./routes/api');
 const cookieParser = require('cookie-parser') //Using later on make sure to install
 const cors = require('cors');
+const db = require('./models/hoameModels');
 const session = require('express-session'); // Import express-session
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
 
 const PORT = 3000;
 // CORS (Cross Origin Resource Sharing) Middleware
 app.use(
   cors({
     origin: 'http://localhost:8080', // Specify the origin
-    credentials:true,
+    credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allow specific methods
     allowedHeaders: [
       'Content-Type',
@@ -44,6 +47,57 @@ app.use(cookieParser());
 
 app.use('/api', apiRouter);
 
+
+//OAUTH LOGIC BELOW//
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID || '70669525785-chgik7e7rdngn09p3b1mc1373bb80p9q.apps.googleusercontent.com',
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET || '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',
+    callbackURL: 'http://localhost:3000/auth/google/callback'
+}, async (accessToken, refreshToken, profile, done) => {  
+  try {
+    console.log("PROFILE GOOGLEID??", profile.google_id)
+    const findUserString ='SELECT * FROM users WHERE google_id=$1'
+    const findUser = await db.query(findUserString, [profile.google_id])
+      // Handle user data, e.g., find or create user in the database
+      const userFound = findUser.rows
+      res.locals.user = userFound
+      next()
+      return done(null, profile);
+  } catch (err) {
+    console.log(err);
+    next({
+      log: 'getAllUsers',
+      message: {
+        err: 'userController.getAllUsers ERROR: Check server logs for details',
+      },
+    });
+  }
+}));
+
+// Serialize and deserialize user for session management
+passport.serializeUser((user, done) => {
+    done(null, user);
+});
+
+passport.deserializeUser((user, done) => {
+    done(null, user);
+});
+
+
+app.get('/auth/google', passport.authenticate('google', {
+    scope: ['profile', 'email']
+}));
+
+app.get('/auth/google/callback',
+    passport.authenticate('google', { failureRedirect: '/api/login' }),
+    (req, res) => {
+        // Successful authentication, redirect to your desired route
+        res.redirect('/api/users');
+    }
+);
+//OAUTH LOGIC ABOVE
 
 
 app.use((req, res) =>

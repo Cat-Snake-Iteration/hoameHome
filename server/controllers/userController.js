@@ -73,45 +73,61 @@ userController.signup = async (req, res, next) => {
 
 // function to authenicate user and start session
 userController.login = async (req, res, next) => {
-  let { username, password } = req.body;
+  let { username, password, google_id, oauth_provider, first_name, last_name } = req.body;
 
   try {
-    const loginString =
-      'SELECT id, username, first_name, password FROM users WHERE username = $1';
-
+    // console.log("REQBODY IN USERCONTROLLER LOGIN", req.body)
+    const loginString =  'SELECT id, username, first_name, password, google_id FROM users WHERE username = $1 OR google_id = $2';
     // store as lowercase for ease
-    const user = await db.query(loginString, [username.toLowerCase()]);
+    const userResult = await db.query(loginString, [username.toLowerCase(), google_id]);
+    const user = userResult.rows[0]
+    
+    console.log("USERCONTROLLERLOGIN- user", user)
 
-    // check for no user found and if no user then login failure and en
-    if (user.rowCount === 0) {
-      res.locals.login = false;
-      return res.status(401).json({ message: 'Invalid username or password' });
-    }
-    // compare password to hashed password in db
-    if (password === user.rows[0].password) {
-      console.log('login successful', user.rows[0]);
+   
+   
+    //if logging in with Oauth for first time - not yet a registered user and need to add to database
+    if (!user) {
+      const newUser = await db.query(
+        'INSERT INTO users (username, google_id, oauth_provider, first_name, last_name) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+        [username, google_id, oauth_provider, first_name, last_name]
+      );
+      const createdUser = newUser.rows[0];
 
-      const userId = user.rows[0].id;
-      const firstName = user.rows[0].first_name; //capture the user first name to render to the dashboard
-      const roles = await roleController.getUserRoles(userId); // Fetch roles
-
-      // Set user info (including roles) in session
       req.session.user = {
-        id: userId,
-        username: user.rows[0].username,
-        roles: roles, // Store the user's roles in the session
-      };
+        id: createdUser.id,
+        username:createdUser.username,
+        roles: []
+      }
 
       res.locals.login = true;
-      res.locals.account = [{ ...user.rows[0], roles }];
-      res.locals.firstName = firstName;
-      console.log('Session user data:', req.session.user); // Debug log
+      res.locals.account = [{...createdUser}]
+      console.log('New User Created (userController.login)', createdUser)
+      return next()
+    }
+
+    //If you already logged in using OAuth previously - your information is in the database and and proceed to login
+    //The request body will not contain a password and only contain a google ID
+    if (!user.password && google_id === user.google_id) {
+      res.locals.login = true;
+      res.locals.account =[{...user}]
+      return next()
+    }
+
+
+    //logging into platform without Oauth
+    // compare password to hashed password in db
+    if (password && user.password === password) {
+      res.locals.login = true;
+      res.locals.account =[{...user}]
+      console.log('Login successful', user)
+      console.log("RESLOCALSACCOUNT", res.locals.account[0].first_name)
     } else {
       res.locals.login = false;
-      console.log('login not successful try again');
+      console.log('Login not successful, try again')
     }
     return next();
-  } catch (err) {
+  }  catch (err) {
     // Using console.error vs console.log to specifically log an error object for handling errors.
     console.error('Error in userController.login.js: ', err);
     return next({
@@ -123,6 +139,6 @@ userController.login = async (req, res, next) => {
       },
     });
   }
-};
+}
 
 module.exports = userController;
