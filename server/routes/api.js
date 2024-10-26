@@ -4,7 +4,6 @@ const documentController = require('../controllers/documentController');
 const announcementController = require('../controllers/announcementController');
 const cookieController = require('../controllers/cookieController.js');
 const sessionController = require('../controllers/sessionController.js');
-//const roleController = require("./server/controllers/roleController");
 const roleController = require('../controllers/roleController');
 
 //require multer for /upload endpoint
@@ -56,6 +55,9 @@ router.post(
     res.status(200).json({ message: 'Logged out successful' });
   }
 );
+/* 
+  Announcements
+*/
 // route to get all announcements
 router.get(
   '/announcements',
@@ -92,17 +94,24 @@ router.delete(
 
 /**
  * documentController routes
- * upload endpoint for calling multer upload.single('file') <-- argument must match name attribute set in HTML form that submits the file <--, followed by documentControllerUpload middleware to upload files to Db & then send a response back.
+ * upload endpoint for calling multer upload.single('file') <-- argument 
+ * must match name attribute set in HTML form that submits the file <--, followed 
+ * by documentControllerUpload middleware to upload files to Db & then send a response back.
  */
-router.post(
-  '/upload',
-  upload.single('file'),
-  documentController.postUpload,
-  (req, res) => {
-    console.log('from api.js - File uploaded and saved to database.');
-    res.status(201).json(res.locals.upload);
+
+// route to serve file and check for it
+router.get('/file/:filename', documentController.serveFile, (req, res) => {
+  const { servedFile } = res.locals;
+  // console.log(`served file from api`, servedFile);
+  if (!servedFile) {
+    return next({
+      log: 'Error in documentController.processServedFile: No file data found in res.locals',
+      status: 500,
+      message: { err: 'File data missing' },
+    });
   }
-);
+  return res.status(200).json(servedFile);
+});
 
 // Route to get documents from DB
 router.get('/getDocs', documentController.getAllDocs, (req, res) => {
@@ -112,19 +121,28 @@ router.get('/getDocs', documentController.getAllDocs, (req, res) => {
 
 //delete a document from the database
 router.delete(
-  '/deleteDoc/:id',
+  '/documents/:id',
   documentController.deleteDocument,
   (req, res) => {
-    return res.status(200).json(res.locals.deletedDoc);
+    res.status(200).json({
+      message: 'Document deleted succesful',
+      deletedDoc: res.locals.deletedDoc,
+  })
+});
+
+// route to upload 
+router.post(
+  '/upload', upload.single('file'),
+  //documentController.uploadFile,
+  documentController.postUpload,
+  (req, res) => {
+    res.status(201).json({
+      message: res.locals.upload.message,
+      file: res.locals.upload,
+    });
   }
 );
 
-// route for file upload.   --- Not in use
-// router.post(
-//   '/upload',
-//   bidControllerr.uploadFile,
-//   bidControllerr.handleFileUpload
-// );
 module.exports = router;
 
 // // -- Stretch --  Create secure session id before starting session
