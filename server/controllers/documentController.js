@@ -1,6 +1,6 @@
-import db from '../models/hoameModels.js';
-import multer from 'multer';
-import path from 'path';
+const db = require ('../models/hoameModels.js');
+const multer = require ('multer');
+const path = require ('path');
 
 // const db = require('../models/hoameModels');
 // const multer = require('multer');
@@ -47,28 +47,34 @@ documentController.getAllDocs = async (req, res, next) => {
 documentController.postUpload = async (req, res, next) => {
   try {
     //destrucure properties of req.file object provided by upload/multer() middleware in api.js route
+    console.log('request hit');
     const { originalname, mimetype, size, buffer } = req.file;
     console.log(
       'documentController.postUpload - Uploaded file: ',
       originalname,
       mimetype,
-      size
+      size,
+      req.file.originalname
     );
     // db query content_type means MIME type means .pdf, .doc, .rtf, etc.
-    const queryText =
+    const queryText = 
       'INSERT INTO files (filename, file_size, content_type, upload_time, file_data) VALUES ($1, $2, $3, NOW(), $4)';
     // properties from multer's req.file
     const values = [originalname, size, mimetype, buffer];
-    await db.query(queryText, values);
+    const result = await db.query(queryText, values);
     //set response (res.locals) to send back successful response
-    res.locals.upload = {
+    if(result.rowCount > 0) {
+      res.locals.upload = {
       message: 'File uploaded successfully',
       filename: originalname,
     };
-
     return next();
+  } else {
+    throw new Error('File not saved in the database');
+  }
+
   } catch (err) {
-    console.error('Error in documentController.postUpload: ', err);
+    console.error(`Error in documentController.postUpload: ', ${err.message}`);
     return next({
       log: 'Error in documentController.postUpload: ' + err,
       status: 500,
@@ -138,35 +144,42 @@ const upload = multer({
   },
 });
 
-// Function to serve a specific file using db id
+// function to serve a specific file using db id
 documentController.serveFile = async (req, res, next) => {
   try {
     const { filename } = req.params;
-    const queryText = 'SELECT filename, content_type, file_data FROM files WHERE filename = $1';
+    const queryText = `
+      SELECT filename, content_type, file_data 
+      FROM files 
+      WHERE filename = $1
+    `;
     const result = await db.query(queryText, [filename]);
 
+    // check if file exists in db
     if (result.rowCount === 0) {
-      return next({
-        log: 'Error in documentController.serveFile: No document found with the specified filename.',
-        status: 404,
-        message: { err: 'File not found' },
-      });
+      return res.status(404).json({ error: 'File not found' });
     }
 
-    res.locals.servedFile = result.rows[0];
+    const file = result.rows[0];
+
+    // convert binary data to base64 format for inline 
+    const base64Data = file.file_data.toString('base64');
+    const dataUrl = `data:${file.content_type};base64,${base64Data}`;
+
+    // file data and type for response in res.locals
+    res.locals.servedFile = {
+      filename: file.filename,
+      content_type: file.content_type,
+      dataUrl,
+    };
     
-    // Set headers for file download/display
-    res.setHeader('Content-Type', file.content_type);
-    res.setHeader('Content-Disposition', `inline; filename="${file.filename}"`);
-    
-    // Send file data as a binary stream
-    return next()
+    return next();
   } catch (err) {
-    console.error('Error in documentController.serveFile: ', err);
+    console.error('Error in documentController.serveFile:', err);
     return next({
       log: 'Error in documentController.serveFile: ' + err,
       status: 500,
-      message: { err: 'An error occurred while serving the file.' },
+      message: { error: 'An error occurred while serving the file' },
     });
   }
 };
@@ -197,4 +210,4 @@ documentController.handleFileUpload = (req, res, next) => {
   }
 };
 
-export default documentController;
+module.exports = documentController;

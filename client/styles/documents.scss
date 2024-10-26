@@ -20,6 +20,19 @@ $fifth-color: #f49390; //Use this for subtle backgrounds or as a hover effect
   transition: background-color 0.3s ease;
 }
 
+.deleteButton {
+  margin-left: 1px; /* Push the button to the right */
+  padding-top: 0.5em;/* Add padding for the button */
+  padding-bottom: 0.5em;
+  max-width: 80px;
+  background-color: $primary-color; /* Use your primary color */
+  color: white; /* Text color */
+  border: none; /* Remove default border */
+  border-radius: 5px; /* Rounded corners */
+  cursor: pointer; /* Pointer cursor */
+  transition: background-color 0.3s ease;
+}
+
 .uploadDoc {
   margin-bottom: 10px;
 }
