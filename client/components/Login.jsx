@@ -61,6 +61,7 @@ const Login = ({ onLogin }) => {
           headers: {
             'Content-Type': 'application/json',
           },
+          credentials: 'include', 
           // body: JSON.stringify({ userInfo }),
           body: JSON.stringify({username: userInfo.email, // Use email as username
             google_id: userInfo.id, // Use Google ID for tracking
@@ -70,13 +71,14 @@ const Login = ({ onLogin }) => {
           })
         });
 
-        console.log('response', response);
+        console.log('response', response.headers);
         if (response.ok) {
           const data = await response.json();
           console.log('Logged in user data:', data);
           // This will log the updated user
           // setIsLoggedIn(data.loggedInUser)
           setIsLoggedIn(data.login);
+          onLogin({isLoggedIn: true});
           navigate('/dashboard', {state: {prop: userInfo.given_name} }); 
         }
       } catch (error) {

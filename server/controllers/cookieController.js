@@ -41,9 +41,10 @@ cookieController.setSSIDCookie = (req, res, next) => {
     // SSID cookie
     res.cookie('hoame_ssid', userId, {
       httpOnly: true,
-      secure: true, // Use only over HTTPS
+      secure: false, // Use only over HTTPS
       maxAge: 60 * 60 * 1000, // 1 hour
     });
+    console.log("ssidCookie", userId)
     return next();
   } else {
     // handle error case if no account found
