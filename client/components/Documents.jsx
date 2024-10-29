@@ -61,6 +61,7 @@ const Documents = () => {
       const response = await fetch('http://localhost:3000/api/getDocs');
       const docs = await response.json();
       setDocuments(docs);
+      // console.log('docs :>> ', docs);
     } catch (error) {
       console.error('error fetching documents', error);
     }
@@ -110,19 +111,21 @@ const Documents = () => {
       {/* form to upload a document */}
       <form onSubmit={handleUpload}>
         <div>
-          <label>Title:</label>
+          <label htmlFor="title">Title:</label>
           <input
             type='text'
             value={title}
+            id="title"
             onChange={(e) => setTitle(e.target.value)}
             required
           />
         </div>
 
         <div>
-          <label>Upload File:</label>
+          <label htmlFor="file">Upload File:</label>
           <input
             type='file'
+             id="file"
             onChange={handleFileChange}
             accept='application/*, image/*'
             required
@@ -142,7 +145,7 @@ const Documents = () => {
           documents.map((doc, index) => (
             <div key={index} className='documentCard'>
               <p>File Name: {doc.filename}</p>
-              <p>Type: {doc.type}</p>
+              <p>Type: {doc.content_type}</p>
               <button onClick={() => viewDocuments(doc.filename)} className='viewButton'> 
               View File
               </button>

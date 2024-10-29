@@ -141,4 +141,33 @@ userController.login = async (req, res, next) => {
   }
 }
 
+// function to add new user to db
+userController.addUser = async (req, res, next) => {
+  const { username, role, first_name, last_name, password } = req.body;
+
+  // check fields
+  if (!username || !role) {
+    return res.status(400).json({ message: 'Username and role are required' });
+  }
+  // query 
+  try {
+    const queryText = `
+      INSERT INTO users (username, role, first_name, last_name, password) 
+      VALUES ($1, $2, $3, $4, $5) 
+      RETURNING *
+    `;
+    const values = [username, role, first_name, last_name, password];
+    const result = await db.query(queryText, values);
+
+    // save new user to res.locals
+    res.locals.newUser = result.rows[0];
+    return next();
+  } catch (err) {
+    return next({
+      log: 'Error in userController.addUser',
+      message: { err: 'Error occurred while adding a new user' },
+    });
+  }
+};
+
 module.exports = userController;
