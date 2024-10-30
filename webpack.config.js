@@ -65,7 +65,7 @@ module.exports = {
   // },
   plugins: [
     new HtmlWebpackPlugin({
-      title: 'Scratch Project',
+      title: 'Iteration Project',
       filename: 'index.html',
       template: 'client/template.html', //relative path of template.html
     }),

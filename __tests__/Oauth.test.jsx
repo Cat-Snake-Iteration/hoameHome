@@ -3,31 +3,34 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { useGoogleLogin } from '@react-oauth/google';
 import Login from '../client/components/Login.jsx';
 import '@testing-library/jest-dom';
-import { jest, expect, it, describe, afterAll, beforeEach } from '@jest/globals'
+// import { jest, expect, it, describe, afterAll, beforeEach } from '@jest/globals'
 import { request } from 'supertest'
 import db from '../server/models/hoameModels.js'
 import app from '../server/server.js'
 
-
-
-jest.mock('@react-oauth/google', () => ({
-    useGoogleLogin: jest.fn()
-    // .mockReturnValue('test-google-id-123')
+const mockGoogle = jest.mock('@react-oauth/google', () => ({
+    useGoogleLogin: jest.fn().mockReturnValue('test-google-id-123')
 }))
+
 describe('test the whole oauth workflow', () => {
     let testGoogleId = 'test-google-id-123'
     let mockLogin;
 
-    beforeEach(() => {
-        mockLogin = useGoogleLogin.mockImplementation(() => ({
-            onSuccess: jest.fn(),
-            onError: jest.fn(),
-        }))
+    // beforeEach(() => {
+    //     mockLogin = useGoogleLogin.mockImplementation(() => ({
+    //         onSuccess: jest.fn(),
+    //         onError: jest.fn(),
+    //     }))
+        // jest.mock('@react-oauth/google', () => ({
+        //     useGoogleLogin: jest.fn().mockReturnValue('test-google-id-123')
+        // }))
     })
 
    afterAll(async () => {
     await db.query('DELETE FROM users WHERE google_id = $1', [testGoogleId])
-    await db.end();
+    if (db && db.end) {
+        await db.end();
+    }
    })
 
    it('should call useGoogleLogin on google login button ', async() => {
@@ -61,7 +64,7 @@ describe('test the whole oauth workflow', () => {
 
 // describe('GET /login', () => {
 //     afterAll(async () =>{
-//         await db.end()
+//         await db.reset()
 //     })
 //     it('should redirect to Google OAuth', async () => {
 //         const response = await request(app).get('/login')
