@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import Announcements from './Announcements';
 import Directory from './Directory';
@@ -13,9 +13,10 @@ import home from '../styles/assets/png_h5pgb.png';
   to handle signout
 */
 
-const Dashboard = ({ onLogout }) => {
-  const location = useLocation();
-  const firstName = location.state.prop;
+const Dashboard = ({ onLogout, userRole }) => {
+  const location = useLocation(); // access specific data
+  const firstName = location.state.prop; // get first name
+  const navigate = useNavigate();
   // console.log("FIRSTNAME", firstName)
   // state to track current active tab, default is announcements
   const [activeTab, setActiveTab] = useState('Announcements');
@@ -33,6 +34,11 @@ const Dashboard = ({ onLogout }) => {
   // function to handle user logout
   const handleLogout = () => {
     onLogout(false);
+  };
+
+  // function to navigate to users management aoge
+  const handleUsers = () => {
+    navigate('/users');
   };
 
   // function to see user's own name appear
@@ -85,6 +91,17 @@ const Dashboard = ({ onLogout }) => {
         {activeTab === 'Directory' && <Directory />}
         {activeTab === 'Bids' && <Bids />}
       </div>
+
+       {/* admin only panel */}
+       {userRole === 'admin' && (
+        <div className='admin-panel'>
+          <h2>Admin Panel</h2>
+          {/* Manage Users button only accessible to admins */}
+          <button onClick={handleUsers} className='usersManage'>
+            Manage Users
+          </button>
+        </div>
+      )}
     </div>
   );
 };

@@ -13,9 +13,40 @@ const upload = multer();
 const router = express.Router();
 
 // route to get all users
-router.get('/users', userController.getAllUsers, (req, res) => {
+router.get(
+  '/users', 
+  userController.getAllUsers,
+  sessionController.isAuthenticated, 
+  roleController.checkPermissions(['admin']), 
+   (req, res) => {
   res.status(200).json(res.locals.users);
 });
+
+// route to add a new user - only used by admins
+router.post(
+  '/users',
+  sessionController.isAuthenticated, 
+  roleController.checkPermissions(['admin']), // only admins
+  userController.addUser,
+  (req, res) => res.status(201).json(res.locals.newUser)
+);
+
+// route to upgrade user role to admin
+router.patch(
+  '/users/:id/upgrade', 
+  userController.upgradeUser,
+   (req, res) => {
+  res.status(200).json({ message: 'User upgraded to admin' });
+});
+
+//route to delete user - only used by admins
+router.delete(
+  '/users',
+  sessionController.isAuthenticated, 
+  roleController.checkPermissions(['admin']), // only admins
+  userController.deleteUser,
+  (req, res) => res.status(201).json(res.locals.deletedUser)
+);
 
 // route to create user
 router.post(

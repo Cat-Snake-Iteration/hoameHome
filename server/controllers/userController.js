@@ -141,4 +141,103 @@ userController.login = async (req, res, next) => {
   }
 }
 
+// function to add new user to db
+userController.addUser = async (req, res, next) => {
+  const { username, role, first_name, last_name, password } = req.body;
+
+  // check fields
+  if (!username || !role) {
+    return res.status(400).json({ message: 'Username and role are required' });
+  }
+  // query 
+  try {
+    const queryText = `
+      INSERT INTO users (username, role, first_name, last_name, password) 
+      VALUES ($1, $2, $3, $4, $5) 
+    `;
+    const values = [username, role, first_name, last_name, password];
+    const result = await db.query(queryText, values);
+
+    // save new user to res.locals
+    res.locals.newUser = result.rows[0];
+    return next();
+  } catch (err) {
+    return next({
+      log: 'Error in userController.addUser',
+      message: { err: 'Error occurred while adding a new user' },
+    });
+  }
+};
+
+// function to delete new user from db
+userController.deleteUser = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ message: 'ID is required' });
+    }
+
+    //db query  content_type means MIME type means .pdf, .doc, .rtf, etc.
+    const queryText = 'DELETE FROM users WHERE id = $1;';
+    const result = await db.query(queryText, [id]);
+
+    // check if no document is found with id
+    if (result.rowCount === 0) {
+      next({
+        log: 'Error in userController.deleteUser: ERROR: User not found',
+        status: 404,
+        message: { err: 'Document not found' },
+      });
+    }
+    //set response (res.locals) to send back successful response
+    res.locals.deletedUser = result.rows[0];
+    return next();
+  } catch (err) {
+    console.error('Error in userController.deleteUser: ', err);
+    return next({
+      log: 'Error in userController.deleteUser: ' + err,
+      status: 500,
+      message: {
+        err: 'An error occurred while deleting the document. Please try again later.',
+      },
+    });
+  }
+};
+
+userController.upgradeUser = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ message: 'ID is required' });
+    }
+
+    //db query  content_type means MIME type means .pdf, .doc, .rtf, etc.
+    const queryText = 'UPDATE user_roles SET role_id = 2 WHERE user_id = $1';
+    const result = await db.query(queryText, ['admin', id]);
+
+    // check if no document is found with id
+    if (result.rowCount === 0) {
+      next({
+        log: 'Error in userController.upgradeUser: ERROR: User not found',
+        status: 404,
+        message: { err: 'Document not found' },
+      });
+    }
+    //set response (res.locals) to send back successful response
+    res.locals.upgradedUser = result.rows[0];
+    return next();
+  } catch (err) {
+    console.error('Error in userController.upgradeUser: ', err);
+    return next({
+      log: 'Error in userController.upgradeUser: ' + err,
+      status: 500,
+      message: {
+        err: 'An error occurred while deleting the document. Please try again later.',
+      },
+    });
+  }
+};
+
 module.exports = userController;
