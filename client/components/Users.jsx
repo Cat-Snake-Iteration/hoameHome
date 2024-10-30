@@ -27,14 +27,14 @@ const Users = () => {
     }
   };
 
-  // functions form input changes for adding a new user
-  const handleInputChange = (e) => {
+  // function to update state with values for username and role
+  const inputChange = (e) => {
     const { name, value } = e.target;
     setNewUser((prevUser) => ({ ...prevUser, [name]: value }));
   };
 
-  // submits new user data to server
-  const handleAddUser = async (e) => {
+  // function to add new user
+  const addUser = async (e) => {
     e.preventDefault();
     try {
       const response = await fetch('http://localhost:3000/api/users', {
@@ -56,6 +56,44 @@ const Users = () => {
     }
   };
 
+  // function to delete user
+  const deleteUser = async (id) => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/users/${id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (response.ok) {
+        alert('User deleted successfully');
+        fetchUsers(); // refresh users list
+      } else {
+        alert('Failed to delete user');
+      }
+    } catch (error) {
+      console.error('Error deleting user:', error);
+    }
+  };
+
+   // function to upgrade a user's role to admin
+   const upgradeToAdmin = async (id) => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/users/${id}/upgrade`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (response.ok) {
+        alert('User upgraded to admin successfully');
+        fetchUsers(); // refresh users list
+      } else {
+        alert('Failed to upgrade user role');
+      }
+    } catch (error) {
+      console.error('Error upgrading user role:', error);
+    }
+  };
+
+
   return (
     <div className="users">
       <h1>Users</h1>
@@ -64,14 +102,14 @@ const Users = () => {
       {error && <p className="error">{error}</p>}
 
       {/* form to add a new user */}
-      <form onSubmit={handleAddUser}>
+      <form onSubmit={addUser}>
         <div>
           <label>Username:</label>
           <input
             type="text"
             name="username"
             value={newUser.username}
-            onChange={handleInputChange}
+            onChange={inputChange}
             required
           />
         </div>
@@ -81,7 +119,7 @@ const Users = () => {
           <select
             name="role"
             value={newUser.role}
-            onChange={handleInputChange}
+            onChange={inputChange}
             required
           >
             <option value="">Select Role</option>
@@ -92,12 +130,16 @@ const Users = () => {
         <button type="submit">Add User</button>
       </form>
 
-      {/* list of existing users */}
-      <h2>Existing Users</h2>
+      {/* list of current users */}
+      <h2>Current Users</h2>
       <ul>
         {users.map((user) => (
           <li key={user.id}>
             {user.username} - Role: {user.role}
+            <button onClick={() => deleteUser(user.id)}>Delete</button>
+            {user.role !== 'admin' && (
+              <button onClick={() => upgradeToAdmin(user.id)}>Upgrade to Admin</button>
+            )}
           </li>
         ))}
       </ul>

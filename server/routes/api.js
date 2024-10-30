@@ -31,6 +31,23 @@ router.post(
   (req, res) => res.status(201).json(res.locals.newUser)
 );
 
+// route to upgrade user role to admin
+router.patch(
+  '/users/:id/upgrade', 
+  userController.upgradeUser,
+   (req, res) => {
+  res.status(200).json({ message: 'User upgraded to admin' });
+});
+
+//route to delete user - only used by admins
+router.delete(
+  '/users',
+  sessionController.isAuthenticated, 
+  roleController.checkPermissions(['admin']), // only admins
+  userController.deleteUser,
+  (req, res) => res.status(201).json(res.locals.deletedUser)
+);
+
 // route to create user
 router.post(
   '/signup',
