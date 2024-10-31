@@ -14,35 +14,33 @@ const router = express.Router();
 
 // route to get all users
 router.get(
-  '/users', 
+  '/users',
   userController.getAllUsers,
-  sessionController.isAuthenticated, 
-  roleController.checkPermissions(['admin']), 
-   (req, res) => {
-  res.status(200).json(res.locals.users);
-});
+  sessionController.isAuthenticated,
+  roleController.checkPermissions(['admin']),
+  (req, res) => {
+    res.status(200).json(res.locals.users);
+  }
+);
 
 // route to add a new user - only used by admins
 router.post(
   '/users',
-  sessionController.isAuthenticated, 
+  sessionController.isAuthenticated,
   roleController.checkPermissions(['admin']), // only admins
   userController.addUser,
   (req, res) => res.status(201).json(res.locals.newUser)
 );
 
 // route to upgrade user role to admin
-router.patch(
-  '/users/:id/upgrade', 
-  userController.upgradeUser,
-   (req, res) => {
+router.patch('/users/:id/upgrade', userController.upgradeUser, (req, res) => {
   res.status(200).json({ message: 'User upgraded to admin' });
 });
 
 //route to delete user - only used by admins
 router.delete(
   '/users',
-  sessionController.isAuthenticated, 
+  sessionController.isAuthenticated,
   roleController.checkPermissions(['admin']), // only admins
   userController.deleteUser,
   (req, res) => res.status(201).json(res.locals.deletedUser)
@@ -68,7 +66,21 @@ router.post(
     // console.log('RESLOCALSFIRSTNAME', res.locals.firstName); //- currently undefined
     res
       .status(200)
-      .json({ login: res.locals.login, firstName: res.locals.account[0].first_name});
+      .json({
+        login: res.locals.login,
+        accountInfo: res.locals.account[0],
+        firstName: res.locals.account[0].first_name,
+      });
+  }
+);
+
+//route to get user role
+router.get(
+  '/login/role/:id',
+  sessionController.isAuthenticated,
+  userController.getRole,
+  (req, res) => {
+    res.status(201).json(res.locals.userRoleId.role_id);
   }
 );
 
@@ -86,9 +98,12 @@ router.post(
     res.status(200).json({ message: 'Logged out successful' });
   }
 );
+
+
 /* 
   Announcements
 */
+
 // route to get all announcements
 router.get(
   '/announcements',
@@ -125,8 +140,8 @@ router.delete(
 
 /**
  * documentController routes
- * upload endpoint for calling multer upload.single('file') <-- argument 
- * must match name attribute set in HTML form that submits the file <--, followed 
+ * upload endpoint for calling multer upload.single('file') <-- argument
+ * must match name attribute set in HTML form that submits the file <--, followed
  * by documentControllerUpload middleware to upload files to Db & then send a response back.
  */
 
@@ -158,12 +173,14 @@ router.delete(
     res.status(200).json({
       message: 'Document deleted succesful',
       deletedDoc: res.locals.deletedDoc,
-  })
-});
+    });
+  }
+);
 
-// route to upload 
+// route to upload
 router.post(
-  '/upload', upload.single('file'),
+  '/upload',
+  upload.single('file'),
   //documentController.uploadFile,
   documentController.postUpload,
   (req, res) => {

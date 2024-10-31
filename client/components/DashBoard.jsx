@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import Announcements from './Announcements';
@@ -13,9 +13,14 @@ import home from '../styles/assets/png_h5pgb.png';
   to handle signout
 */
 
-const Dashboard = ({ onLogout, userRole }) => {
+const Dashboard = ({ onLogout, }) => {
   const location = useLocation(); // access specific data
   const firstName = location.state.prop; // get first name
+  const accountInfo = location.state.accountInfo;
+  const [userRole, setUserRole] = useState('');
+  const userId = accountInfo.id;
+  console.log('userId :>> ', userId);
+
   const navigate = useNavigate();
   // console.log("FIRSTNAME", firstName)
   // state to track current active tab, default is announcements
@@ -41,6 +46,35 @@ const Dashboard = ({ onLogout, userRole }) => {
     navigate('/users');
   };
 
+
+useEffect(() => {
+  const getRole = async () => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/login/role/${userId}`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // include cookies for session management
+      });
+      const data = await response.json();
+      console.log('role', data);
+
+      // upon successful login, update state
+      if (response.ok) {
+        setUserRole(data)
+        
+        // onLogin(true); // Update the login state to true
+        // console.log("I AM HERE WHERE I AM WANTING TO BE!!!!!!!")
+      } else {
+        console.error('Login failed:', data);
+      }
+    } catch (err) {
+      console.error('Error during login:', err);
+    }
+  };
+  getRole(); 
+}, [userId]);
+  
   // function to see user's own name appear
   // const getFirstName = async () => {
   //   // const [users, setUsers] = useState([]);
@@ -53,7 +87,7 @@ const Dashboard = ({ onLogout, userRole }) => {
   //       console.log('error fetching users:', error);
   //     }
   // };
-
+  console.log('userRole :>> ', userRole);
   return (
     <div className='dashboard'>
       <header>
@@ -93,7 +127,7 @@ const Dashboard = ({ onLogout, userRole }) => {
       </div>
 
        {/* admin only panel */}
-       {userRole === 'admin' && (
+       {userRole === 2 && (
         <div className='admin-panel'>
           <h2>Admin Panel</h2>
           {/* Manage Users button only accessible to admins */}
