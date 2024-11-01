@@ -16,32 +16,41 @@ const router = express.Router();
 router.get(
   '/users',
   userController.getAllUsers,
-  sessionController.isAuthenticated,
-  roleController.checkPermissions(['admin']),
+  // sessionController.isAuthenticated,
+  // roleController.checkPermissions(['admin']),
+  (req, res) => {
+    res.status(200).json(res.locals.users);
+  }
+);
+
+router.get(
+  '/admin/users',
+  userController.getAllUsers,
   (req, res) => {
     res.status(200).json(res.locals.users);
   }
 );
 
 // route to add a new user - only used by admins
-router.post(
-  '/users',
-  sessionController.isAuthenticated,
-  roleController.checkPermissions(['admin']), // only admins
-  userController.addUser,
-  (req, res) => res.status(201).json(res.locals.newUser)
-);
+// router.post(
+//   '/users',
+//   sessionController.isAuthenticated,
+//   roleController.checkPermissions(['admin']), // only admins
+//   userController.addUser,
+//   (req, res) => res.status(201).json(res.locals.newUser)
+// );
 
 // route to upgrade user role to admin
 router.patch('/users/:id/upgrade', userController.upgradeUser, (req, res) => {
   res.status(200).json({ message: 'User upgraded to admin' });
 });
 
-//route to delete user - only used by admins
+
+// route to delete user - only used by admins
 router.delete(
-  '/users',
-  sessionController.isAuthenticated,
-  roleController.checkPermissions(['admin']), // only admins
+  '/users/:id',
+  // sessionController.isAuthenticated,
+  // roleController.checkPermissions(['admin']), // only admins
   userController.deleteUser,
   (req, res) => res.status(201).json(res.locals.deletedUser)
 );
@@ -88,10 +97,11 @@ router.get(
 router.get('/auth/check', sessionController.isAuthenticated, (req, res) => {
   res.status(200).json({ message: 'User is authenticated.' });
 });
+
 // route to logout(end session)
 router.post(
   '/logout',
-  sessionController.isAuthenticated,
+  // sessionController.isAuthenticated,
   sessionController.endSession,
   (req, res) => {
     res.clearCookie('ssid');

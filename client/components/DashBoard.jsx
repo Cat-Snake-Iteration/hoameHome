@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-
+import Users from './Users';
 import Announcements from './Announcements';
 import Directory from './Directory';
 import Documents from './Documents';
@@ -19,7 +19,7 @@ const Dashboard = ({ onLogout, }) => {
   const accountInfo = location.state.accountInfo;
   const [userRole, setUserRole] = useState('');
   const userId = accountInfo.id;
-  console.log('userId :>> ', userId);
+  // console.log('userId :>> ', userId);
 
   const navigate = useNavigate();
   // console.log("FIRSTNAME", firstName)
@@ -61,7 +61,7 @@ useEffect(() => {
 
       // upon successful login, update state
       if (response.ok) {
-        setUserRole(data)
+        if (data == 2) setUserRole('admin');
         
         // onLogin(true); // Update the login state to true
         // console.log("I AM HERE WHERE I AM WANTING TO BE!!!!!!!")
@@ -116,6 +116,11 @@ useEffect(() => {
         <button onClick={handleClick} className='tab'>
           Directory
         </button>
+        {userRole === 'admin' && (
+          <button onClick={handleClick} className='tab'>
+    Users
+  </button>
+  )}
       </nav>
 
       {/* Render componets based on the active tab*/}
@@ -124,18 +129,18 @@ useEffect(() => {
         {activeTab === 'Documents' && <Documents />}
         {activeTab === 'Directory' && <Directory />}
         {activeTab === 'Bids' && <Bids />}
+        {activeTab === 'Users'  && <Users />}
       </div>
 
        {/* admin only panel */}
-       {userRole === 2 && (
+{/*        
         <div className='admin-panel'>
           <h2>Admin Panel</h2>
-          {/* Manage Users button only accessible to admins */}
+          Manage Users button only accessible to admins
           <button onClick={handleUsers} className='usersManage'>
             Manage Users
           </button>
-        </div>
-      )}
+        </div> */}
     </div>
   );
 };
