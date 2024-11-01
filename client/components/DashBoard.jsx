@@ -117,12 +117,12 @@ useEffect(() => {
         <button onClick={handleClick} className='tab'>
           Directory
         </button>
+        <button onClick={handleClick} className='tab'>Polls</button>
         {userRole === 'admin' && (
           <button onClick={handleClick} className='tab'>
     Users
   </button>
   )}
-        <button onClick={handleClick} className='tab'>Polls</button>
       </nav>
 
       {/* Render componets based on the active tab*/}
