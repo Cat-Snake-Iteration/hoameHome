@@ -7,6 +7,7 @@ import Documents from './Documents';
 import Bids from './Bids';
 import Logout from './Logout';
 import home from '../styles/assets/png_h5pgb.png';
+import Polls from './Polls'
 /*
   Componet serves as the main UI where users can go to differnt sections
   using tabs, it displays state and includes a logout function
@@ -121,6 +122,7 @@ useEffect(() => {
     Users
   </button>
   )}
+        <button onClick={handleClick} className='tab'>Polls</button>
       </nav>
 
       {/* Render componets based on the active tab*/}
@@ -130,6 +132,7 @@ useEffect(() => {
         {activeTab === 'Directory' && <Directory />}
         {activeTab === 'Bids' && <Bids />}
         {activeTab === 'Users'  && <Users />}
+        {activeTab === 'Polls' && <Polls/>}
       </div>
 
        {/* admin only panel */}
