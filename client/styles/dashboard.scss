@@ -15,6 +15,15 @@ $fifth-color: #f49390; //Use this for subtle backgrounds or as a hover effect
   margin: 0px;
   color: grey;
 }
+
+.admin-panel {
+  height: 10vh;
+  border: 2px solid $tertiary-color;
+  border-radius: 20px;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
 header {
   display: flex;
   justify-content: space-between;

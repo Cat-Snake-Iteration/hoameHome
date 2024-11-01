@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-
+import Users from './Users';
 import Announcements from './Announcements';
 import Directory from './Directory';
 import Documents from './Documents';
@@ -14,9 +14,14 @@ import Polls from './Polls'
   to handle signout
 */
 
-const Dashboard = ({ onLogout, userRole }) => {
+const Dashboard = ({ onLogout, }) => {
   const location = useLocation(); // access specific data
   const firstName = location.state.prop; // get first name
+  const accountInfo = location.state.accountInfo;
+  const [userRole, setUserRole] = useState('');
+  const userId = accountInfo.id;
+  // console.log('userId :>> ', userId);
+
   const navigate = useNavigate();
   // console.log("FIRSTNAME", firstName)
   // state to track current active tab, default is announcements
@@ -42,6 +47,35 @@ const Dashboard = ({ onLogout, userRole }) => {
     navigate('/users');
   };
 
+
+useEffect(() => {
+  const getRole = async () => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/login/role/${userId}`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // include cookies for session management
+      });
+      const data = await response.json();
+      console.log('role', data);
+
+      // upon successful login, update state
+      if (response.ok) {
+        if (data == 2) setUserRole('admin');
+        
+        // onLogin(true); // Update the login state to true
+        // console.log("I AM HERE WHERE I AM WANTING TO BE!!!!!!!")
+      } else {
+        console.error('Login failed:', data);
+      }
+    } catch (err) {
+      console.error('Error during login:', err);
+    }
+  };
+  getRole(); 
+}, [userId]);
+  
   // function to see user's own name appear
   // const getFirstName = async () => {
   //   // const [users, setUsers] = useState([]);
@@ -54,7 +88,7 @@ const Dashboard = ({ onLogout, userRole }) => {
   //       console.log('error fetching users:', error);
   //     }
   // };
-
+  console.log('userRole :>> ', userRole);
   return (
     <div className='dashboard'>
       <header>
@@ -84,6 +118,11 @@ const Dashboard = ({ onLogout, userRole }) => {
           Directory
         </button>
         <button onClick={handleClick} className='tab'>Polls</button>
+        {userRole === 'admin' && (
+          <button onClick={handleClick} className='tab'>
+    Users
+  </button>
+  )}
       </nav>
 
       {/* Render componets based on the active tab*/}
@@ -92,19 +131,19 @@ const Dashboard = ({ onLogout, userRole }) => {
         {activeTab === 'Documents' && <Documents />}
         {activeTab === 'Directory' && <Directory />}
         {activeTab === 'Bids' && <Bids />}
+        {activeTab === 'Users'  && <Users />}
         {activeTab === 'Polls' && <Polls/>}
       </div>
 
        {/* admin only panel */}
-       {userRole === 'admin' && (
+{/*        
         <div className='admin-panel'>
           <h2>Admin Panel</h2>
-          {/* Manage Users button only accessible to admins */}
+          Manage Users button only accessible to admins
           <button onClick={handleUsers} className='usersManage'>
             Manage Users
           </button>
-        </div>
-      )}
+        </div> */}
     </div>
   );
 };
