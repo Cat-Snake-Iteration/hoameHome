@@ -5,6 +5,8 @@ const announcementController = require('../controllers/announcementController');
 const cookieController = require('../controllers/cookieController.js');
 const sessionController = require('../controllers/sessionController.js');
 const roleController = require('../controllers/roleController');
+const pollController = require('../controllers/pollController');
+const pollForm = require('../controllers/pollForm');
 
 //require multer for /upload endpoint
 const multer = require('multer');
@@ -201,6 +203,23 @@ router.post(
   }
 );
 
+//router to get polls
+router.get(
+  '/polls',
+  pollController.getPolls,
+  (req, res) => {
+    res.status(200).json(res.locals.polls);
+  }
+);
+
+router.post('/polls', pollForm.addPoll, (req, res) =>{
+  return res.sendStatus(204)
+  })
+
+//router to add poll
+router.post('/polls', pollController.createPoll, (req, res) => {
+   
+});
 
 module.exports = router;
 
