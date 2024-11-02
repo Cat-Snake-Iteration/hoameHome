@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PollBox from './PollBox';
 
 
+
 const Polls = () => {
     const [questions, setQuestions] = useState('')
     // console.log("within polls")
@@ -27,7 +28,9 @@ const Polls = () => {
         }, []);
 
         return (
+            <div>
         <PollBox question={questions}/>
+            </div>
         )
     }
 

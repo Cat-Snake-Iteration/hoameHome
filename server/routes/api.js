@@ -212,6 +212,14 @@ router.get(
   }
 );
 
+// router.post(
+//   '/polls-submit',
+//   pollController.submitAnswer,
+//   (req, res) => {
+//     res.status(200).json(res.locals.polls);
+//   }
+// );
+
 router.post('/polls', pollForm.addPoll, (req, res) =>{
   return res.sendStatus(204)
   })
