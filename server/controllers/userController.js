@@ -10,7 +10,9 @@ const userController = {};
 // function to get all users in db
 userController.getAllUsers = async (req, res, next) => {
   try {
-    const getUsersString = 'SELECT * FROM users';
+    const getUsersString = `
+      SELECT users.*, user_roles.role_id FROM users LEFT JOIN user_roles ON users.id = user_roles.users_id
+    `;
     const usersResult = await db.query(getUsersString);
 
     const users = usersResult.rows;
@@ -172,14 +174,16 @@ userController.login = async (req, res, next) => {
 // function to delete new user from db
 userController.deleteUser = async (req, res, next) => {
   const { id } = req.params;
+
   if (!id) {
     return res.status(400).json({ message: 'ID is required' });
   }
 
   try {
     //db query  content_type means MIME type means .pdf, .doc, .rtf, etc.
-    const queryText = 'DELETE FROM users WHERE id = $1;';
+    const queryText = 'DELETE FROM users WHERE id = $1 RETURNING *';
     const result = await db.query(queryText, [id]);
+    console.log(`delete user with id: ${id}`);
 
     // check if no document is found with id
     if (result.rowCount === 0) {
@@ -190,16 +194,19 @@ userController.deleteUser = async (req, res, next) => {
       });
     }
     //set response (res.locals) to send back successful response
-    res.locals.deletedUser = result.rows[0];
+    return res.status(200).json({
+      message: 'User deleted sucessful',
+      deletedUser: result.rows[0],
+    })
+    //res.locals.deletedUser = result.rows[0];
     return next();
   } catch (err) {
     console.error('Error in userController.deleteUser: ', err);
     return next({
       log: 'Error in userController.deleteUser: ' + err,
       status: 500,
-      message: {
-        err: 'An error occurred while deleting the document. Please try again later.',
-      },
+      message: 'An error occurred while deleting the document. Please try again later.',
+        err: err.message,
     });
   }
 };
@@ -211,26 +218,51 @@ userController.upgradeUser = async (req, res, next) => {
     if (!id) {
       return res.status(400).json({ message: 'ID is required' });
     }
-
     //db query  content_type means MIME type means .pdf, .doc, .rtf, etc.
-    const queryText = 'UPDATE user_roles SET role_id = 2 WHERE user_id = $1';
+    const queryText = 'UPDATE user_roles SET role_id = 2 WHERE users_id = $1';
     const result = await db.query(queryText, [id]);
 
     // check if no document is found with id
     if (result.rowCount === 0) {
-      next({
-        log: 'Error in userController.upgradeUser: ERROR: User not found',
-        status: 404,
-        message: { err: 'Document not found' },
-      });
+      const addText = 'INSERT INTO user_roles (role_id, users_id) VALUES ($1, $2)';
+      const insertResult = await db.query(addText, [2, id]); // Assuming role_id is 2
     }
     //set response (res.locals) to send back successful response
-    res.locals.upgradedUser = result.rows[0];
     return next();
   } catch (err) {
     console.error('Error in userController.upgradeUser: ', err);
     return next({
       log: 'Error in userController.upgradeUser: ' + err,
+      status: 500,
+      message: {
+        err: 'An error occurred while deleting the document. Please try again later.',
+      },
+    });
+  }
+};
+
+userController.downgradeUser = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ message: 'ID is required' });
+    }
+    //db query  content_type means MIME type means .pdf, .doc, .rtf, etc.
+    const queryText = 'UPDATE user_roles SET role_id = 3 WHERE users_id = $1';
+    const result = await db.query(queryText, [id]);
+
+    // check if no document is found with id
+    if (result.rowCount === 0) {
+      const addText = 'INSERT INTO user_roles (role_id, users_id) VALUES ($1, $2)';
+      const insertResult = await db.query(addText, [3, id]); // Assuming role_id is 2
+    }
+    //set response (res.locals) to send back successful response
+    return next();
+  } catch (err) {
+    console.error('Error in userController.downgradeUser: ', err);
+    return next({
+      log: 'Error in userController.downgradeUser: ' + err,
       status: 500,
       message: {
         err: 'An error occurred while deleting the document. Please try again later.',

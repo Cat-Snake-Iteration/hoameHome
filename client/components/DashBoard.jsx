@@ -111,7 +111,7 @@ useEffect(() => {
           <option value='Announcement'>Select Tab</option>
           <option value='Documents'>Documents</option>
           {/* <option value='MeetingMinutes'>Meeting Minutes</option> */}
-          <option value='Bids'>Upload Documents</option>
+          {/*<option value='Bids'>Upload Documents</option>*/}
         </select>
         {/* Button to directory tab */}
         <button onClick={handleClick} className='tab'>

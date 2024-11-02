@@ -1,0 +1,116 @@
+// Use the existing colors
+$primary-color: #f45866; //primary actions and buttons
+$secondary-color: #a2666f; //for backgrounds, secondary actions or less prominent elements
+$tertiary-color: #c45ab3; //Use for highlights, links, or accent elements
+$fourth-color: #631a86; // Use for headers, titles, and emphasis, especially for text
+$fifth-color: #f49390; //Use this for subtle backgrounds or as a hover effect
+
+.users {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: 'Verdana', sans-serif;
+  color: grey;
+
+  h1 {
+    color: $fourth-color;
+    font-size: 2em;
+    margin-bottom: 0.5em;
+  }
+
+  // Form for Adding New User
+  form {
+    border: 2px solid $tertiary-color;
+    border-radius: 10px;
+    padding: 2rem;
+    margin-bottom: 2em;
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: $fifth-color;
+
+    label {
+      font-size: 1.2em;
+      color: $fourth-color;
+      margin-bottom: 0.2em;
+    }
+
+    input,
+    select {
+      padding: 0.8em;
+      width: 80%;
+      margin-bottom: 1em;
+      border: 1px solid $tertiary-color;
+      border-radius: 8px;
+      color: grey;
+      font-size: 1em;
+    }
+  }
+
+  .error {
+    color: $primary-color;
+    font-size: 1em;
+    margin: 0.5em;
+  }
+
+  // List of Current Users
+  ul {
+    list-style: none;
+    width: 90%;
+    padding: 0;
+    font-family: 'Verdana', sans-serif;
+
+    li {
+      border: 1px solid $tertiary-color;
+      border-radius: 8px;
+      padding: 1em;
+      margin-bottom: 1em;
+      background-color: white;
+      color: $fourth-color;
+      display: flex;
+      flex-direction: column;
+      font-family: 'Verdana', sans-serif;
+
+      span {
+        margin-bottom: 0.5em;
+        color: $fifth-color;
+        font-size: 1em;
+        font-family: 'Verdana', sans-serif;
+      }
+
+      .delete-button {
+        padding: 0.5em 1em;
+        margin-top: 0.5em;
+        background-color: $fourth-color !important;
+        color: white !important;
+        font-size: 0.9em;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+
+        &:hover {
+          background-color: $secondary-color !important; 
+        }
+      }
+
+      .upgrade-button {
+        padding: 0.5em 1em;
+        margin-top: 0.5em;
+        margin-left: 0.5em;
+        background-color: $fourth-color !important; 
+        color: white !important; 
+        font-size: 0.9em;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+
+        &:hover {
+          background-color: $tertiary-color !important; // Purple accent on hover
+        }
+      }
+    }
+  }
+}
