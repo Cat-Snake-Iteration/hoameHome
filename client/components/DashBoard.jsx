@@ -89,6 +89,7 @@ useEffect(() => {
   //     }
   // };
   console.log('userRole :>> ', userRole);
+  console.log('Active Tab', activeTab)
   return (
     <div className='dashboard'>
       <header>
