@@ -45,6 +45,10 @@ router.patch('/users/:id/upgrade', userController.upgradeUser, (req, res) => {
   res.status(200).json({ message: 'User upgraded to admin' });
 });
 
+// route to downgrade user role to member
+router.patch('/users/:id/downgrade', userController.downgradeUser, (req, res) => {
+  res.status(200).json({ message: 'User downgraded to member' });
+});
 
 // route to delete user - only used by admins
 router.delete(
@@ -52,7 +56,7 @@ router.delete(
   // sessionController.isAuthenticated,
   // roleController.checkPermissions(['admin']), // only admins
   userController.deleteUser,
-  (req, res) => res.status(201).json(res.locals.deletedUser)
+  (req, res) => res.status(200).json({message: 'User delete successfully'})
 );
 
 // route to create user

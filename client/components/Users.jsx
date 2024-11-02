@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
+
 /*
    Allows admin to view existing users and add new users
 */
@@ -63,15 +64,19 @@ const Users = () => {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
       });
+
       console.log('user response', response);
       if (response.ok) {
         alert('User deleted successfully');
         fetchUsers(); // refresh users list
       } else {
+        const errorMessage = await response.text();
+        console.error('failed to delete user', errorMessage);
         alert('Failed to delete user');
       }
     } catch (error) {
       console.error('Error deleting user:', error);
+      alert('Error in deleting user');
     }
   };
   
@@ -84,8 +89,26 @@ const Users = () => {
       });
       
       if (response.ok) {
-        alert('User upgraded to admin successfully');
         fetchUsers(); // refresh users list
+        alert('User upgraded to admin successfully');
+      } else {
+        alert('Failed to upgrade user role');
+      }
+    } catch (error) {
+      console.error('Error upgrading user role:', error);
+    }
+  };
+
+  const demoteToMember = async (id) => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/users/${id}/downgrade`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      
+      if (response.ok) {
+        fetchUsers(); // refresh users list
+        alert('User demoted to member successfully');
       } else {
         alert('Failed to upgrade user role');
       }
@@ -141,10 +164,19 @@ const Users = () => {
              Username: {user.username} < br />
              Address: {user.street_address} < br />
              Phone: {user.phone} < br />
-              Role: {user.role} < br />
+             Role: {
+  (() => {
+    if (user.role_id == 1) return 'Owner';
+    else if (user.role_id == 2) return 'Admin';
+    else return 'Member';
+  })()
+} <br />
             <button onClick={() => deleteUser(user.id)}>Delete</button>
-            {user.role !== 'admin' && (
+            {user.role_id != 2 && (
               <button onClick={() => upgradeToAdmin(user.id)}>Upgrade to Admin</button>
+            )}
+            {user.role_id == 2 && (
+              <button onClick={() => demoteToMember(user.id)}>Demote to Member</button>
             )}
           </li>
         ))}
